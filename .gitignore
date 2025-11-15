@@ -1,0 +1,60 @@
+# ---------------------------------------------------
+# GLOBAL
+# ---------------------------------------------------
+node_modules/
+.env
+.env.*
+dist/
+build/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# ---------------------------------------------------
+# BACKEND (Node.js)
+# ---------------------------------------------------
+backend/node_modules/
+backend/dist/
+backend/build/
+backend/.env
+backend/.env.*
+
+# Logs
+backend/logs
+backend/*.log
+
+# Coverage
+backend/coverage/
+
+# ---------------------------------------------------
+# FRONTEND (Next.js)
+# ---------------------------------------------------
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env
+frontend/.env.*
+
+# Next.js Cache
+frontend/.turbo/
+frontend/.vercel/
+
+# Tailwind CSS
+frontend/**/*.css.map
+
+# ---------------------------------------------------
+# OPTIONAL (si usas Docker)
+# ---------------------------------------------------
+docker-compose.override.yml
+*.pid
+
+# ---------------------------------------------------
+# OPTIONAL (si usas VSCode)
+# ---------------------------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
