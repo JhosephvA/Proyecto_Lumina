@@ -1,65 +1,107 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+
+export default function HomePage() {
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoaded(true), 100) // pequeño delay antes de animar
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100vh',
+      background: 'linear-gradient(135deg, #6b73ff 0%, #000dff 100%)',
+      color: '#fff',
+      gap: 40,
+      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      textAlign: 'center',
+      overflow: 'hidden'
+    }}>
+      {/* Logo y nombre */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 10,
+        transform: loaded ? 'translateY(0)' : 'translateY(-50px)',
+        opacity: loaded ? 1 : 0,
+        transition: 'all 0.8s ease-out'
+      }}>
+        <img 
+          src="/logo.png" 
+          alt="Lumina Edu" 
+          style={{ 
+            width: 140, 
+            height: 'auto', 
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)', 
+            borderRadius: 12 
+          }} 
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <h1 style={{ fontSize: 56, fontWeight: 700, margin: 0, textShadow: '1px 1px 4px rgba(0,0,0,0.3)' }}>
+          Lumina Edu
+        </h1>
+        <p style={{ fontSize: 18, opacity: 0.9, maxWidth: 450 }}>
+          La plataforma educativa moderna para academias y centros de preparación
+        </p>
+      </div>
+
+      {/* Botones */}
+      <div style={{
+        display: 'flex',
+        gap: 20,
+        transform: loaded ? 'translateY(0)' : 'translateY(50px)',
+        opacity: loaded ? 1 : 0,
+        transition: 'all 1s ease-out 0.5s' // delay para que aparezcan después del logo
+      }}>
+        <Link href="/login">
+          <button style={{
+            padding: '14px 36px',
+            borderRadius: 10,
+            border: 'none',
+            backgroundColor: '#fff',
+            color: '#0070f3',
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontSize: 18,
+            transition: '0.3s',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#f0f0f0')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Iniciar sesión
+          </button>
+        </Link>
+        <Link href="/register">
+          <button style={{
+            padding: '14px 36px',
+            borderRadius: 10,
+            border: '2px solid #fff',
+            backgroundColor: 'transparent',
+            color: '#fff',
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontSize: 18,
+            transition: '0.3s',
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
           >
-            Documentation
-          </a>
-        </div>
-      </main>
+            Registrarse
+          </button>
+        </Link>
+      </div>
     </div>
-  );
+  )
 }
