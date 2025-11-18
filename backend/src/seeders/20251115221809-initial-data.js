@@ -1,19 +1,19 @@
 'use strict';
 
 const bcrypt = require('bcryptjs');
+const config = require('../config/config');
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface, Sequelize) {
-    const hashedPassword = await bcrypt.hash('AdminPass123!', 10);
-
+  async up(queryInterface, Sequelize) {
     // 1. Crear Admin Inicial
+    const hashedPassword = await bcrypt.hash('AdminPass123!', 10);
     await queryInterface.bulkInsert('Users', [{
       nombre: 'Super',
       apellido: 'Admin',
       email: 'admin@academia.com',
       password: hashedPassword,
-      rol: 'admin',
+      rol: config.roles.ADMIN,
       intentosFallidos: 0,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -26,7 +26,7 @@ module.exports = {
       apellido: 'García',
       email: 'ana.garcia@academia.com',
       password: professorPassword,
-      rol: 'profesor',
+      rol: config.roles.PROFESSOR,
       intentosFallidos: 0,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -39,17 +39,13 @@ module.exports = {
       apellido: 'Pérez',
       email: 'carlos.perez@academia.com',
       password: studentPassword,
-      rol: 'estudiante',
+      rol: config.roles.STUDENT,
       intentosFallidos: 0,
       createdAt: new Date(),
       updatedAt: new Date()
     }], {});
 
     // Obtener IDs para relaciones
-    const adminUser = await queryInterface.sequelize.query(
-      `SELECT id from Users WHERE email = 'admin@academia.com'`,
-      { type: queryInterface.sequelize.QueryTypes.SELECT }
-    );
     const professorUser = await queryInterface.sequelize.query(
       `SELECT id from Users WHERE email = 'ana.garcia@academia.com'`,
       { type: queryInterface.sequelize.QueryTypes.SELECT }
@@ -66,7 +62,7 @@ module.exports = {
     await queryInterface.bulkInsert('Courses', [{
       nombre: 'Introducción a Node.js',
       descripcion: 'Curso básico para aprender a desarrollar backend con Node.js y Express.',
-      profesorId: professorId,
+      profesorId,
       createdAt: new Date(),
       updatedAt: new Date()
     }], {});
@@ -80,7 +76,7 @@ module.exports = {
     // 5. Crear Matrícula de Ejemplo
     await queryInterface.bulkInsert('Enrollments', [{
       estudianteId: studentId,
-      courseId: courseId,
+      courseId,
       fecha: new Date(),
       createdAt: new Date(),
       updatedAt: new Date()
@@ -88,10 +84,10 @@ module.exports = {
 
     // 6. Crear Tarea de Ejemplo
     await queryInterface.bulkInsert('Tasks', [{
-      courseId: courseId,
+      courseId,
       titulo: 'Primer Proyecto: API REST',
       descripcion: 'Implementar una API REST simple con un endpoint GET.',
-      fechaEntrega: new Date(new Date().setDate(new Date().getDate() + 7)), // Entrega en 7 días
+      fechaEntrega: new Date(new Date().setDate(new Date().getDate() + 7)),
       createdAt: new Date(),
       updatedAt: new Date()
     }], {});
@@ -104,7 +100,7 @@ module.exports = {
 
     // 7. Crear Entrega de Ejemplo (sin calificar)
     await queryInterface.bulkInsert('Submissions', [{
-      taskId: taskId,
+      taskId,
       estudianteId: studentId,
       archivoURL: 'https://github.com/carlos/api-rest-node',
       nota: null,
@@ -123,7 +119,7 @@ module.exports = {
     }], {});
   },
 
-  async down (queryInterface, Sequelize) {
+  async down(queryInterface, Sequelize) {
     await queryInterface.bulkDelete('AiRecommendations', null, {});
     await queryInterface.bulkDelete('StudyLogs', null, {});
     await queryInterface.bulkDelete('Submissions', null, {});

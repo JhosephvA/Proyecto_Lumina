@@ -20,6 +20,20 @@ Course.belongsTo(User, { foreignKey: 'profesorId', as: 'Profesor' });
 User.hasMany(Enrollment, { foreignKey: 'estudianteId', as: 'Matriculas' });
 Enrollment.belongsTo(User, { foreignKey: 'estudianteId', as: 'Estudiante' });
 
+// Acceso directo a los cursos de un estudiante a través de Enrollment
+User.belongsToMany(Course, {
+  through: Enrollment,
+  foreignKey: 'estudianteId',
+  otherKey: 'courseId',
+  as: 'Cursos',
+});
+Course.belongsToMany(User, {
+  through: Enrollment,
+  foreignKey: 'courseId',
+  otherKey: 'estudianteId',
+  as: 'Estudiantes',
+});
+
 // Un estudiante tiene varias entregas
 User.hasMany(Submission, { foreignKey: 'estudianteId', as: 'Entregas' });
 Submission.belongsTo(User, { foreignKey: 'estudianteId', as: 'Estudiante' });

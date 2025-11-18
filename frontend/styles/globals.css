@@ -1,0 +1,19 @@
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #eaeaea;
+}
+
+h1, h2, h3 {
+  font-family: 'Inter', sans-serif;
+  color: #333;
+}
+
+a {
+  text-decoration: none;
+  color: #0070f3;
+}
+
+a:hover {
+  text-decoration: underline;
+}
