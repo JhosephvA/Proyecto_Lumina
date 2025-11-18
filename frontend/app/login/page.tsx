@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { loginUser } from "@/lib/api"; // IMPORTANTE
+import { loginUser } from "@/lib/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -10,21 +10,31 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       const data = await loginUser(email, password);
 
-      // Guardar token + usuario
-      localStorage.setItem("token", data.tokens.accessToken);
-      localStorage.setItem("refreshToken", data.tokens.refreshToken);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      console.log("RESPUESTA LOGIN:", data);
 
       alert("Inicio de sesión exitoso");
 
-      // Redirigir según rol
-      const role = data.user.rol; // ⬅ asegúrate de que sea 'rol' y no 'role'
-      if (role === "ADMIN") window.location.href = "/admin";
-      else if (role === "PROFESSOR") window.location.href = "/professor";
-      else window.location.href = "/student";
+      // ============================
+      // Rol normalizado
+      // ============================
+      const role = data.user.rol?.toLowerCase();
+
+      // ============================
+      // Redirección por rol
+      // ============================
+      if (role === "admin") {
+        window.location.href = "/admin";
+      } else if (role === "profesor" || role === "teacher") {
+        window.location.href = "/teacher";
+      } else if (role === "estudiante") {
+        window.location.href = "/student";
+      } else {
+        alert("Rol desconocido: " + role);
+      }
 
     } catch (error: any) {
       alert(error.message || "Error al iniciar sesión");
@@ -51,8 +61,8 @@ export default function LoginPage() {
         backdropFilter: 'blur(10px)'
       }}>
         <h2 style={{ fontSize: 32, marginBottom: 20 }}>Iniciar sesión</h2>
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <input
             type="email"
             placeholder="Correo electrónico"
@@ -80,8 +90,7 @@ export default function LoginPage() {
               color: "#0070f3",
               fontWeight: 600,
               cursor: "pointer"
-            }}
-          >
+            }}>
             Entrar
           </button>
         </form>
