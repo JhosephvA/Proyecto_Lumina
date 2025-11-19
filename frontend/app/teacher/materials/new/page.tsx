@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function NewMaterialPage() {
   const [courses, setCourses] = useState<any[]>([]);
@@ -41,11 +42,10 @@ export default function NewMaterialPage() {
       }
 
       const data = await res.json();
-      console.log("👉 Cursos recibidos:", data);
-
       setCourses(Array.isArray(data) ? data : []);
+
       if (Array.isArray(data) && data.length > 0) {
-        setCourseId(data[0].id); // seleccionar el primer curso por defecto
+        setCourseId(data[0].id);
       }
     } catch (error) {
       console.error("Error al obtener cursos:", error);
@@ -55,9 +55,7 @@ export default function NewMaterialPage() {
     }
   };
 
-  // =============================
-  //  CREAR MATERIAL
-  // =============================
+  // Crear Material
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
@@ -73,8 +71,6 @@ export default function NewMaterialPage() {
       archivoUrl,
       courseId,
     };
-
-    console.log("📤 Enviando:", body);
 
     const res = await fetch("http://localhost:3000/api/professor/materials", {
       method: "POST",
@@ -102,70 +98,166 @@ export default function NewMaterialPage() {
     obtenerCursos();
   }, []);
 
-  if (loading) return <p>Cargando cursos...</p>;
+  if (loading)
+    return <p style={{ padding: 40 }}>Cargando cursos...</p>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Crear Material</h1>
+    <div
+      style={{
+        minHeight: "100vh",
+        padding: 40,
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        background: "#f5f6fa",
+        color: "#333",
+      }}
+    >
+      {/* ========== HEADER igual al de los cursos ========== */}
+      <header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 40,
+        }}
+      >
+        <h1 style={{ fontSize: 32, fontWeight: 700 }}>Crear Material</h1>
 
+        <div>
+          <Link
+            href="/teacher/materials"
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#0070f3",
+              color: "#fff",
+              borderRadius: 6,
+              textDecoration: "none",
+              marginRight: 10,
+            }}
+          >
+            Ver Materiales
+          </Link>
+
+          <Link
+            href="/teacher"
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#636e72",
+              color: "#fff",
+              borderRadius: 6,
+              textDecoration: "none",
+            }}
+          >
+            Volver al Dashboard
+          </Link>
+        </div>
+      </header>
+
+      {/* ========== CUERPO con card igual estilo de cursos/materiales ========== */}
       {courses.length === 0 ? (
-        <p className="text-gray-500">
-          No tienes cursos asignados. No puedes crear materiales.
-        </p>
+        <p>No tienes cursos asignados. No puedes crear materiales.</p>
       ) : (
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          {/* ================= CURSO ================= */}
-          <div>
-            <label className="block font-semibold">Curso</label>
-            <select
-              className="border p-2 rounded w-full"
-              value={courseId}
-              onChange={(e) => setCourseId(e.target.value)}
+        <div
+          style={{
+            maxWidth: 600,
+            margin: "0 auto",
+            background: "#fff",
+            padding: 30,
+            borderRadius: 12,
+            boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
+          }}
+        >
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            {/* Curso */}
+            <div>
+              <label style={{ fontWeight: 600 }}>Curso</label>
+              <select
+                style={{
+                  border: "1px solid #ccc",
+                  padding: 10,
+                  borderRadius: 6,
+                  width: "100%",
+                  marginTop: 4,
+                }}
+                value={courseId}
+                onChange={(e) => setCourseId(e.target.value)}
+              >
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Título */}
+            <div>
+              <label style={{ fontWeight: 600 }}>Título</label>
+              <input
+                style={{
+                  border: "1px solid #ccc",
+                  padding: 10,
+                  borderRadius: 6,
+                  width: "100%",
+                  marginTop: 4,
+                }}
+                value={titulo}
+                onChange={(e) => setTitulo(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* Descripción */}
+            <div>
+              <label style={{ fontWeight: 600 }}>Descripción</label>
+              <textarea
+                style={{
+                  border: "1px solid #ccc",
+                  padding: 10,
+                  borderRadius: 6,
+                  width: "100%",
+                  marginTop: 4,
+                }}
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+              />
+            </div>
+
+            {/* URL archivo */}
+            <div>
+              <label style={{ fontWeight: 600 }}>
+                URL del archivo (PDF, Drive, etc.)
+              </label>
+              <input
+                style={{
+                  border: "1px solid #ccc",
+                  padding: 10,
+                  borderRadius: 6,
+                  width: "100%",
+                  marginTop: 4,
+                }}
+                value={archivoUrl}
+                onChange={(e) => setArchivoUrl(e.target.value)}
+              />
+            </div>
+
+            {/* Botón */}
+            <button
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#00b894",
+                color: "#fff",
+                borderRadius: 6,
+                border: "none",
+                marginTop: 10,
+                cursor: "pointer",
+                fontWeight: 600,
+                display: "block",
+              }}
             >
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* ================= TÍTULO ================= */}
-          <div>
-            <label className="block font-semibold">Título</label>
-            <input
-              className="border p-2 rounded w-full"
-              value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* ================= DESCRIPCIÓN ================= */}
-          <div>
-            <label className="block font-semibold">Descripción</label>
-            <textarea
-              className="border p-2 rounded w-full"
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-            />
-          </div>
-
-          {/* ================= ARCHIVO URL ================= */}
-          <div>
-            <label className="block font-semibold">URL del archivo (Drive, PDF, etc.)</label>
-            <input
-              className="border p-2 rounded w-full"
-              value={archivoUrl}
-              onChange={(e) => setArchivoUrl(e.target.value)}
-            />
-          </div>
-
-          {/* ================= BOTÓN ================= */}
-          <button className="px-4 py-2 bg-blue-600 text-white rounded">
-            Crear Material
-          </button>
-        </form>
+              Crear Material
+            </button>
+          </form>
+        </div>
       )}
     </div>
   );

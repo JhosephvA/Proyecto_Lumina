@@ -26,7 +26,6 @@ export default function MaterialsPage() {
       });
 
       const contentType = res.headers.get("content-type") || "";
-
       if (!contentType.includes("application/json")) {
         console.error("❌ El backend no devolvió JSON.");
         console.log("Contenido devuelto:", await res.text());
@@ -36,8 +35,6 @@ export default function MaterialsPage() {
       }
 
       const data = await res.json();
-      console.log("👉 DATA RECIBIDA:", data);
-
       setMateriales(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error al obtener materiales:", error);
@@ -52,62 +49,116 @@ export default function MaterialsPage() {
   }, []);
 
   return (
-    <div className="p-6">
+    <div
+      style={{
+        minHeight: "100vh",
+        padding: 40,
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        background: "#f5f6fa",
+        color: "#333",
+      }}
+    >
+      {/* HEADER IGUAL AL DE CURSOS */}
+      <header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 40,
+        }}
+      >
+        <h1 style={{ fontSize: 32, fontWeight: 700 }}>Mis Materiales</h1>
 
-      {/* TITULO ARRIBA IZQUIERDA */}
-      <h1 className="text-2xl font-bold mb-4">Mis Materiales</h1>
+        <div>
+          <Link
+            href="/teacher"
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#0070f3",
+              color: "#fff",
+              borderRadius: 6,
+              textDecoration: "none",
+              marginRight: 10,
+            }}
+          >
+            Volver al dashboard
+          </Link>
 
-      {/* FILA DE BOTONES */}
-      <div className="flex justify-between items-center mb-6">
-        {/* Botón izquierda */}
-        <Link
-          href="/teacher"
-          className="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded"
-        >
-          ⬅ Volver al Dashboard
-        </Link>
+          <Link
+            href="/teacher/materials/new"
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#00b894",
+              color: "#fff",
+              borderRadius: 6,
+              textDecoration: "none",
+            }}
+          >
+            Crear Material
+          </Link>
+        </div>
+      </header>
 
-        {/* Botón derecha */}
-        <Link
-          href="/teacher/materials/new"
-          className="px-4 py-2 bg-blue-600 text-white rounded"
-        >
-          Crear material
-        </Link>
-      </div>
-
+      {/* CUERPO */}
       {loading ? (
-        <p className="text-gray-500">Cargando materiales...</p>
+        <p style={{ padding: 40 }}>Cargando materiales...</p>
       ) : materiales.length === 0 ? (
-        <p className="text-gray-500">No hay materiales aún.</p>
+        <p>No hay materiales aún.</p>
       ) : (
-        <div className="space-y-4">
+        <main
+          style={{
+            display: "grid",
+            gap: 24,
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          }}
+        >
           {materiales.map((m: any) => (
             <div
               key={m.id}
-              className="p-4 bg-white shadow rounded border flex justify-between"
+              style={{
+                backgroundColor: "#74b9ff",
+                borderRadius: 12,
+                padding: 20,
+                color: "#fff",
+                boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
+                cursor: "pointer",
+                transition: "transform 0.3s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "scale(1)")
+              }
             >
-              <div>
-                <h2 className="text-xl font-semibold">{m.titulo}</h2>
-                <p>{m.descripcion}</p>
+              <h2 style={{ fontSize: 20, fontWeight: 700 }}>{m.titulo}</h2>
 
-                <p className="text-sm text-gray-500 mt-1">
-                  Curso: {m.curso?.nombre || "Sin curso asignado"}
-                </p>
+              <p style={{ fontSize: 14, opacity: 0.9 }}>
+                {m.descripcion || "Sin descripción"}
+              </p>
 
-                {m.archivoUrl && (
-                  <a
-                    href={m.archivoUrl}
-                    target="_blank"
-                    className="text-blue-600 underline mt-2 block"
-                  >
-                    Ver archivo
-                  </a>
-                )}
-              </div>
+              <p style={{ fontSize: 12, opacity: 0.7, marginTop: 10 }}>
+                Curso: {m.curso?.nombre || "Sin curso asignado"}
+              </p>
+
+              {m.archivoUrl && (
+                <a
+                  href={m.archivoUrl}
+                  target="_blank"
+                  style={{
+                    color: "#fff",
+                    textDecoration: "underline",
+                    fontSize: 14,
+                    marginTop: 12,
+                    display: "block",
+                  }}
+                >
+                  Ver archivo
+                </a>
+              )}
             </div>
           ))}
-        </div>
+        </main>
       )}
     </div>
   );
