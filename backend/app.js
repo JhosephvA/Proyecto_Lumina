@@ -74,7 +74,8 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('Conexión a la base de datos establecida correctamente.');
 
-    await sequelize.sync({ alter: true });
+    // Solo crea tablas nuevas si no existen, no toca tablas existentes
+    await sequelize.sync({ alter: false });
     console.log('Tablas sincronizadas correctamente.');
 
     app.listen(config.port, () => {

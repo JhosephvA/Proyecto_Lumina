@@ -16,6 +16,10 @@ export default function LoginPage() {
 
       console.log("RESPUESTA LOGIN:", data);
 
+      // ✅ Guardar tokens en localStorage
+      localStorage.setItem("token", data.tokens.accessToken);
+      localStorage.setItem("refreshToken", data.tokens.refreshToken);
+
       alert("Inicio de sesión exitoso");
 
       // ============================
