@@ -4,7 +4,7 @@ const config = require('./src/config/config');
 const sequelize = require('./src/config/sequelize-config');
 const { applyRateLimiting } = require('./src/middlewares/rateLimiter');
 
-// Importar modelos
+// Importar asociaciones y modelos
 require('./src/models/associations');
 require('./src/models/User');
 require('./src/models/Course');
@@ -20,10 +20,10 @@ console.log("JWT SECRET:", process.env.JWT_SECRET);
 const app = express();
 
 // =====================================================
-// 1. CORS (Frontend corre en :3001, backend en :3000)
+// 1. CORS (Frontend en :3001, Backend en :3000)
 // =====================================================
 app.use(cors({
-  origin: 'http://localhost:3001',  // ⬅ FRONTEND
+  origin: 'http://localhost:3001',
   credentials: true
 }));
 
@@ -31,7 +31,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rate limiting
+// Rate limiting global
 app.use(applyRateLimiting);
 
 // =====================================================
@@ -42,24 +42,34 @@ const adminRoutes = require('./src/routes/admin.routes');
 const professorRoutes = require('./src/routes/professor.routes');
 const studentRoutes = require('./src/routes/student.routes');
 
+const materialProfessorRoutes = require("./src/routes/material.professor.routes");
+const materialStudentRoutes = require("./src/routes/material.student.routes");
+
+// Rutas principales
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/professor', professorRoutes); // ⬅ NECESARIO PARA /grades
+app.use('/api/professor', professorRoutes);
 app.use('/api/student', studentRoutes);
+
+// Rutas de materiales
+app.use("/api/materials/professor", materialProfessorRoutes);
+app.use("/api/materials/student", materialStudentRoutes);
 
 // Ruta prueba
 app.get('/', (req, res) => {
   res.send('Academia Backend API - Status OK');
 });
 
-// 404
+// =====================================================
+// 3. Manejo de errores y 404
+// =====================================================
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Ruta no encontrada' });
 });
 
 // Manejo de errores global
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error("🔥 ERROR GLOBAL:", err.stack);
   res.status(err.status || 500).json({
     message: err.message || 'Error interno del servidor',
     error: config.env === 'development' ? err : {},
@@ -67,7 +77,7 @@ app.use((err, req, res, next) => {
 });
 
 // =====================================================
-// 3. Iniciar servidor + sincronizar DB
+// 4. Iniciar servidor + conectar DB
 // =====================================================
 async function startServer() {
   try {
@@ -83,10 +93,11 @@ async function startServer() {
       );
     });
   } catch (error) {
-    console.error('No se pudo conectar a la base de datos:', error);
+    console.error('❌ No se pudo conectar a la base de datos:', error);
     process.exit(1);
   }
 }
 
 startServer();
-//comentario para vercel
+module.exports = app;
+

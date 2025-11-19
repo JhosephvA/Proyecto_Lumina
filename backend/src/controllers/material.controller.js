@@ -1,7 +1,8 @@
 const Material = require('../models/Material');
 const Course = require('../models/Course');
+const Enrollment = require("../models/Enrollment"); // 🔥 Mover arriba mejora orden
 
-// Crear material
+// 📌 Crear material (solo profesor)
 exports.createMaterial = async (req, res) => {
   try {
     const { titulo, descripcion, archivoUrl, courseId } = req.body;
@@ -33,7 +34,7 @@ exports.createMaterial = async (req, res) => {
   }
 };
 
-// Listar materiales
+// 📌 Listar TODOS los materiales (opcional)
 exports.getMaterials = async (req, res) => {
   try {
     const materiales = await Material.findAll({
@@ -42,6 +43,48 @@ exports.getMaterials = async (req, res) => {
 
     res.json(materiales);
   } catch (error) {
+    res.status(500).json({ message: "Error al obtener materiales", error });
+  }
+};
+
+// 📌 Obtener materiales por curso (profesor o estudiante)
+exports.getMaterialsByCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.rol;
+
+    // 🔹 Si es estudiante → verificar inscripción
+    if (userRole === "estudiante") {
+      const estaInscrito = await Enrollment.findOne({
+        where: { estudianteId: userId, courseId }
+      });
+
+      if (!estaInscrito) {
+        return res.status(403).json({ message: "No estás inscrito en este curso" });
+      }
+    }
+
+    // 🔹 Si es profesor → validar que sea su curso
+    if (userRole === "profesor") {
+      const curso = await Course.findOne({
+        where: { id: courseId, profesorId: userId }
+      });
+
+      if (!curso) {
+        return res.status(403).json({ message: "No puedes ver materiales de un curso que no te pertenece" });
+      }
+    }
+
+    // 🔹 Obtener materiales
+    const materiales = await Material.findAll({
+      where: { courseId },
+      order: [["createdAt", "DESC"]]
+    });
+
+    res.json(materiales);
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error al obtener materiales", error });
   }
 };
