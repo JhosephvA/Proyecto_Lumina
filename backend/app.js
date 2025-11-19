@@ -13,6 +13,7 @@ require('./src/models/Task');
 require('./src/models/Submission');
 require('./src/models/StudyLog');
 require('./src/models/AiRecommendation');
+require('./src/models/Material');
 
 console.log("JWT SECRET:", process.env.JWT_SECRET);
 

@@ -5,6 +5,8 @@ const progressController = require("../controllers/progress.controller");
 const { requireAuth, requireRole } = require("../middlewares/auth.middleware");
 const { User, Course, Submission, Task } = require("../models/associations");
 const config = require("../config/config");
+const materialRoutes = require("./material.routes");
+
 
 const router = express.Router();
 
@@ -147,5 +149,10 @@ router.get(
   progressController.getCourseProgress
 );
 router.get("/ai/student/:studentId", progressController.consultAIModule);
+
+/* ==========================================
+   🔹 Materiales
+========================================== */
+router.use('/materials', materialRoutes);
 
 module.exports = router;
