@@ -1,69 +1,151 @@
-const express = require('express');
-const taskController = require('../controllers/task.controller');
-const submissionController = require('../controllers/submission.controller');
-const progressController = require('../controllers/progress.controller');
-const { requireAuth, requireRole } = require('../middlewares/auth.middleware');
-const { Course } = require('../models/associations'); // tu modelo Course
-const config = require('../config/config');
+const express = require("express");
+const taskController = require("../controllers/task.controller");
+const submissionController = require("../controllers/submission.controller");
+const progressController = require("../controllers/progress.controller");
+const { requireAuth, requireRole } = require("../middlewares/auth.middleware");
+const { User, Course, Submission, Task } = require("../models/associations");
+const config = require("../config/config");
 
 const router = express.Router();
 
-// Middleware de autorización para todas las rutas de Profesor
+// 🔐 Todas las rutas requieren ser PROFESOR
 router.use(requireAuth, requireRole([config.roles.PROFESSOR]));
 
 /* ==========================================
-   🔹 Cursos del profesor
+   CURSOS
 ========================================== */
-router.get('/courses', async (req, res) => {
+router.get("/courses", async (req, res) => {
   try {
-    const profesorId = req.user.id; // viene de requireAuth
+    const profesorId = req.user.id;
 
     const cursos = await Course.findAll({
       where: { profesorId },
-      attributes: ['id', 'nombre', 'descripcion', 'profesorId'],
+      attributes: ["id", "nombre", "descripcion", "profesorId"],
     });
 
-    res.json(cursos); // devolver array directo
+    res.json(cursos);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Error al obtener los cursos del profesor' });
+    res.status(500).json({ message: "Error al obtener cursos" });
   }
 });
 
-/* ==========================================
-   🔹 Crear un nuevo curso (asignado al profesor logueado)
-========================================== */
-router.post('/courses', async (req, res) => {
+router.post("/courses", async (req, res) => {
   try {
+    const profesorId = req.user.id;
     const { nombre, descripcion } = req.body;
-    const profesorId = req.user.id; // asigna automáticamente al profesor logueado
 
-    const newCourse = await Course.create({ nombre, descripcion, profesorId });
+    const newCourse = await Course.create({
+      nombre,
+      descripcion,
+      profesorId,
+    });
 
     res.status(201).json(newCourse);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Error al crear el curso' });
+    res.status(500).json({ message: "Error al crear curso" });
   }
 });
 
 /* ==========================================
-   🔹 Rutas de Tareas (CRUD)
+   TAREAS
 ========================================== */
-router.post('/tasks', taskController.createTask);
-router.put('/tasks/:id', taskController.updateTask);
-router.delete('/tasks/:id', taskController.deleteTask);
+router.get("/tasks", taskController.getTasksByProfessor);
+router.post("/tasks", taskController.createTask);
+router.put("/tasks/:id", taskController.updateTask);
+router.delete("/tasks/:id", taskController.deleteTask);
 
 /* ==========================================
-   🔹 Rutas de Entregas y Calificación
+   ENTREGAS
 ========================================== */
-router.get('/tasks/:taskId/submissions', submissionController.getSubmissionsByTask);
-router.put('/submissions/:id/grade', submissionController.gradeSubmission);
+router.get(
+  "/tasks/:taskId/submissions",
+  submissionController.getSubmissionsByTask
+);
+router.put("/submissions/:id/grade", submissionController.gradeSubmission);
 
 /* ==========================================
-   🔹 Rutas de Progreso y Consulta de IA
+   NOTAS
 ========================================== */
-router.get('/courses/:courseId/progress', progressController.getCourseProgress);
-router.get('/ai/student/:studentId', progressController.consultAIModule);
+router.get("/grades", async (req, res) => {
+  try {
+    const profesorId = req.user.id;
+
+    // Obtener cursos impartidos por este profesor
+    const courses = await Course.findAll({
+      where: { profesorId },
+      attributes: ["id"],
+    });
+
+    const courseIds = courses.map((c) => c.id);
+
+    if (courseIds.length === 0) {
+      return res.json([]); // No hay cursos = no hay notas
+    }
+
+    // 🔹 Traer todas las entregas con estudiante, tarea y curso, filtrando solo estudiantes
+    const grades = await Submission.findAll({
+      include: [
+        {
+          model: Task,
+          as: "Tarea",
+          where: { courseId: courseIds },
+          attributes: ["id", "titulo", "courseId"],
+          include: [
+            {
+              model: Course,
+              as: "Curso",
+              attributes: ["id", "nombre"],
+            },
+          ],
+        },
+        {
+          model: User,
+          as: "Estudiante",
+          attributes: ["id", "nombre", "apellido", "email", "rol"],
+          where: { rol: "estudiante" }, // 🔹 FILTRO: solo estudiantes
+        },
+      ],
+      attributes: ["id", "nota", "archivoURL", "fechaEntrega"],
+    });
+
+    // Formatear respuesta para frontend
+    const formattedGrades = grades.map((g) => ({
+      id: g.id,
+      nota: g.nota,
+      archivoURL: g.archivoURL,
+      fechaEntrega: g.fechaEntrega,
+      tarea: {
+        id: g.Tarea?.id,
+        titulo: g.Tarea?.titulo,
+        curso: {
+          id: g.Tarea?.Curso?.id,
+          nombre: g.Tarea?.Curso?.nombre,
+        },
+      },
+      estudiante: {
+        id: g.Estudiante?.id,
+        nombre: g.Estudiante?.nombre,
+        apellido: g.Estudiante?.apellido,
+        email: g.Estudiante?.email,
+      },
+    }));
+
+    res.json(formattedGrades);
+  } catch (err) {
+    console.error("❌ Error cargando notas:", err);
+    res.status(500).json({ message: "Error al obtener notas" });
+  }
+});
+
+/* ==========================================
+   PROGRESO & IA
+========================================== */
+router.get(
+  "/courses/:courseId/progress",
+  progressController.getCourseProgress
+);
+router.get("/ai/student/:studentId", progressController.consultAIModule);
 
 module.exports = router;

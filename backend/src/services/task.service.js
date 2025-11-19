@@ -30,6 +30,33 @@ const getTasksByCourse = async (courseId) => {
 };
 
 /**
+ * 🔥 Obtiene TODAS las tareas de TODOS los cursos del profesor
+ */
+const getTasksByProfessor = async (profesorId) => {
+  const courses = await Course.findAll({
+    where: { profesorId },
+    attributes: ['id', 'nombre'],
+  });
+
+  const courseIds = courses.map((c) => c.id);
+
+  if (courseIds.length === 0) return [];
+
+  const tasks = await Task.findAll({
+    where: { courseId: courseIds },
+    order: [['createdAt', 'DESC']],
+    include: [
+      {
+        model: Course,
+        attributes: ['id', 'nombre'],
+      },
+    ],
+  });
+
+  return tasks;
+};
+
+/**
  * Obtiene una tarea por ID.
  */
 const getTaskById = async (taskId) => {
@@ -67,6 +94,7 @@ const deleteTask = async (profesorId, taskId) => {
 module.exports = {
   createTask,
   getTasksByCourse,
+  getTasksByProfessor,   // 🔥 IMPORTANTE (necesitado por el frontend)
   getTaskById,
   updateTask,
   deleteTask,

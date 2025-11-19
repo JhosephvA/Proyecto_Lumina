@@ -87,3 +87,21 @@ export async function getMyCourses(token: string) {
 
   return data;
 }
+
+
+export async function getGrades(token: string) {
+  const res = await fetch(`${API_URL}/professor/grades`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await safeJson(res);
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Error al obtener las notas");
+  }
+
+  return data;
+}

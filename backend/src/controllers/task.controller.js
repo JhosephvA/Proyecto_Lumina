@@ -1,58 +1,127 @@
-const taskService = require('../services/task.service');
+const { Task, Course } = require('../models/associations');
+const config = require('../config/config');
 
 /**
- * Crea una nueva tarea (Profesor).
+ * Verifica si el usuario es el profesor del curso.
  */
-const createTask = async (req, res, next) => {
+const isProfessorOfCourse = async (profesorId, courseId) => {
+  const course = await Course.findByPk(courseId);
+  if (!course || course.profesorId !== profesorId) {
+    const error = new Error('Acceso denegado. No es el profesor de este curso.');
+    error.status = 403;
+    throw error;
+  }
+  return course;
+};
+
+/**
+ * Crea una nueva tarea.
+ */
+const createTask = async (req, res) => {
   try {
     const profesorId = req.user.id;
-    const newTask = await taskService.createTask(profesorId, req.body);
-    res.status(201).json(newTask);
-  } catch (error) {
-    next(error);
+    const taskData = req.body;
+
+    await isProfessorOfCourse(profesorId, taskData.courseId);
+
+    const task = await Task.create(taskData);
+    res.json(task);
+  } catch (err) {
+    console.error("❌ Error createTask:", err);
+    res.status(500).json({ message: 'Error al crear tarea' });
   }
 };
 
 /**
- * Obtiene las tareas de un curso (Profesor).
+ * OBTENER TODAS LAS TAREAS DEL PROFESOR (FUNCIÓN QUE FALTABA 🔥)
  */
-const getTasksByCourse = async (req, res, next) => {
+const getTasksByProfessor = async (req, res) => {
   try {
-    const tasks = await taskService.getTasksByCourse(req.params.courseId);
-    res.status(200).json(tasks);
-  } catch (error) {
-    next(error);
+    const profesorId = req.user.id;
+
+    // Buscar cursos del profesor
+    const courses = await Course.findAll({
+      where: { profesorId },
+      attributes: ['id'],
+    });
+
+    const courseIds = courses.map(c => c.id);
+
+    // Si no tiene cursos, retornar lista vacía
+    if (courseIds.length === 0) {
+      return res.json([]);
+    }
+
+    // TAREAS de esos cursos
+    const tasks = await Task.findAll({
+      where: { courseId: courseIds },
+      order: [['createdAt', 'DESC']],
+    });
+
+    res.json(tasks); // 👈 **IMPORTANTE: devolver SOLO el array**
+  } catch (err) {
+    console.error("❌ Error getTasksByProfessor:", err);
+    res.status(500).json({ message: 'Error al obtener tareas' });
   }
 };
 
 /**
- * Actualiza una tarea (Profesor).
+ * Obtiene tareas por curso.
  */
-const updateTask = async (req, res, next) => {
+const getTasksByCourse = async (req, res) => {
   try {
-    const profesorId = req.user.id;
-    const updatedTask = await taskService.updateTask(profesorId, req.params.id, req.body);
-    res.status(200).json(updatedTask);
-  } catch (error) {
-    next(error);
+    const { courseId } = req.params;
+    const tasks = await Task.findAll({ where: { courseId } });
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: 'Error al obtener tareas del curso' });
   }
 };
 
 /**
- * Elimina una tarea (Profesor).
+ * Actualiza una tarea.
  */
-const deleteTask = async (req, res, next) => {
+const updateTask = async (req, res) => {
   try {
     const profesorId = req.user.id;
-    await taskService.deleteTask(profesorId, req.params.id);
-    res.status(204).send();
-  } catch (error) {
-    next(error);
+    const taskId = req.params.id;
+
+    const task = await Task.findByPk(taskId);
+    if (!task) return res.status(404).json({ message: 'Tarea no encontrada' });
+
+    await isProfessorOfCourse(profesorId, task.courseId);
+
+    await task.update(req.body);
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ message: 'Error al actualizar tarea' });
+  }
+};
+
+/**
+ * Elimina una tarea.
+ */
+const deleteTask = async (req, res) => {
+  try {
+    const profesorId = req.user.id;
+    const taskId = req.params.id;
+
+    const task = await Task.findByPk(taskId);
+    if (!task) return res.status(404).json({ message: 'Tarea no encontrada' });
+
+    await isProfessorOfCourse(profesorId, task.courseId);
+
+    await Task.destroy({ where: { id: taskId } });
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: 'Error al eliminar tarea' });
   }
 };
 
 module.exports = {
   createTask,
+  getTasksByProfessor,   // 👈 YA EXISTE
   getTasksByCourse,
   updateTask,
   deleteTask,

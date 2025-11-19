@@ -18,9 +18,11 @@ console.log("JWT SECRET:", process.env.JWT_SECRET);
 
 const app = express();
 
-// ====== 1. HABILITAR CORS ======
+// =====================================================
+// 1. CORS (Frontend corre en :3001, backend en :3000)
+// =====================================================
 app.use(cors({
-  origin: 'http://localhost:3001',
+  origin: 'http://localhost:3001',  // ⬅ FRONTEND
   credentials: true
 }));
 
@@ -31,7 +33,9 @@ app.use(express.urlencoded({ extended: true }));
 // Rate limiting
 app.use(applyRateLimiting);
 
-// Rutas
+// =====================================================
+// 2. Rutas del backend
+// =====================================================
 const authRoutes = require('./src/routes/auth.routes');
 const adminRoutes = require('./src/routes/admin.routes');
 const professorRoutes = require('./src/routes/professor.routes');
@@ -39,7 +43,7 @@ const studentRoutes = require('./src/routes/student.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/professor', professorRoutes);
+app.use('/api/professor', professorRoutes); // ⬅ NECESARIO PARA /grades
 app.use('/api/student', studentRoutes);
 
 // Ruta prueba
@@ -52,7 +56,7 @@ app.use((req, res, next) => {
   res.status(404).json({ message: 'Ruta no encontrada' });
 });
 
-// Error global
+// Manejo de errores global
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
@@ -61,18 +65,21 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Servidor
+// =====================================================
+// 3. Iniciar servidor + sincronizar DB
+// =====================================================
 async function startServer() {
   try {
     await sequelize.authenticate();
     console.log('Conexión a la base de datos establecida correctamente.');
 
-    // 🔹 Sincronizar modelos con la DB (crear tablas que faltan)
-    await sequelize.sync({ alter: true }); // ⬅️ Esto crea/actualiza tablas automáticamente
-    console.log('Tablas sincronizadas correctamente con la base de datos.');
+    await sequelize.sync({ alter: true });
+    console.log('Tablas sincronizadas correctamente.');
 
     app.listen(config.port, () => {
-      console.log(`Servidor corriendo en http://localhost:${config.port} en modo ${config.env}`);
+      console.log(
+        `Servidor backend corriendo en http://localhost:${config.port} (modo ${config.env})`
+      );
     });
   } catch (error) {
     console.error('No se pudo conectar a la base de datos:', error);
