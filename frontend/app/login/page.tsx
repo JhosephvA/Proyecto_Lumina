@@ -36,8 +36,13 @@ export default function LoginPage() {
         alert("Rol desconocido: " + role);
       }
 
-    } catch (error: any) {
-      alert(error.message || "Error al iniciar sesión");
+    } catch (error: unknown) {
+      // Comprobamos si el error es una instancia de Error
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("Error al iniciar sesión");
+      }
     }
   };
 

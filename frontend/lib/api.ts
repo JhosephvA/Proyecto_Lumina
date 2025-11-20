@@ -1,4 +1,4 @@
-export const API_URL = "http://localhost:3000/api";
+export const API_URL = "https://nuevolumina-backend.onrender.com";
 
 /* ============================================
    🔹 Función auxiliar para parsear JSON seguro

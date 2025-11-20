@@ -25,8 +25,13 @@ export default function RegisterPage() {
       alert("Registro exitoso. Ahora inicia sesión.");
       window.location.href = "/login";
 
-    } catch (error: any) {
-      alert(error.message || "Error al registrarte");
+    } catch (error: unknown) {
+      // Manejo seguro de error en TypeScript
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("Error al registrarte");
+      }
     }
   };
 

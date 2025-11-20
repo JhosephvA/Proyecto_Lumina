@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "chromedriver": "^142.0.3",
-    "next": "16.0.3",
+    "next": "^16.0.3",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "selenium-webdriver": "^4.38.0"
@@ -20,6 +20,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/selenium-webdriver": "^4.35.4",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "tailwindcss": "^4",

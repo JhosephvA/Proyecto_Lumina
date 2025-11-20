@@ -9,7 +9,7 @@ const config = require('../config/config');
 const generateAccessToken = (user) => {
   return jwt.sign(
     { id: user.id, rol: user.rol },
-    config.jwt.secret, // 👈 ESTE ES EL IMPORTANTE
+    config.jwt.secret,
     { expiresIn: config.jwt.accessExpiration }
   );
 };
@@ -20,7 +20,7 @@ const generateAccessToken = (user) => {
 const generateRefreshToken = (user) => {
   return jwt.sign(
     { id: user.id },
-    config.jwt.refreshSecret, // 👈 ESTE TAMBIÉN
+    config.jwt.refreshSecret,
     { expiresIn: config.jwt.refreshExpiration }
   );
 };
