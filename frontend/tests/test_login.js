@@ -6,7 +6,7 @@ import readline from 'readline';
 
   try {
     // 1️⃣ Abrir página de login
-    await driver.get('http://localhost:3001/login');
+    await driver.get('https://proyectolumina2.vercel.app/login');
     console.log('Página de login abierta');
     await driver.sleep(2000);
 

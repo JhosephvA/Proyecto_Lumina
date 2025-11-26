@@ -6,7 +6,7 @@ import readline from 'readline';
 
   try {
     // 1️⃣ Abrir la vista de estudiante
-    await driver.get('http://localhost:3001/student');
+    await driver.get('https://proyectolumina2.vercel.app/student');
     console.log('Página de estudiante abierta');
     await driver.sleep(2000);
 

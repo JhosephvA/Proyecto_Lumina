@@ -5,8 +5,7 @@ import { Builder, By, until } from 'selenium-webdriver';
 
   try {
     // 1️⃣ Abrir la página de registro
-    await driver.get('http://localhost:3001/register');
-    console.log('Página de registro abierta');
+    await driver.get('https://proyectolumina2.vercel.app/register');
     await driver.sleep(2000); // esperar 2s para ver la página
 
     // 2️⃣ Llenar los campos del formulario lentamente

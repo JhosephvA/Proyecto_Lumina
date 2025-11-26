@@ -4,7 +4,7 @@ import { Builder, By, until } from 'selenium-webdriver';
   const driver = await new Builder().forBrowser('chrome').build();
 
   try {
-    await driver.get('http://localhost:3001');
+    await driver.get('https://proyectolumina2.vercel.app');
     await driver.sleep(2000); // Esperar 2s para ver la pantalla inicial
 
     const title = await driver.getTitle();
