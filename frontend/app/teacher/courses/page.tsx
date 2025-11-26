@@ -28,7 +28,7 @@ export default function TeacherCourses() {
 
     const fetchCourses = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/professor/courses", {
+        const res = await fetch("https://nuevolumina-backend.onrender.com/api/professor/courses", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
