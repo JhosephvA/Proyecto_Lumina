@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 
 interface Grade {
   id: number;
@@ -10,7 +12,7 @@ interface Grade {
   tarea?: {
     id: number;
     titulo: string;
-    curso?: {
+    curso: {
       id: number;
       nombre: string;
     };
@@ -23,7 +25,10 @@ interface Grade {
   };
 }
 
-export default function TeacherGrades() {
+export default function TeacherCourseGrades() {
+  const { id } = useParams();      // ← ID del curso
+  const courseId = Number(id);
+
   const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -33,12 +38,13 @@ export default function TeacherGrades() {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          console.warn("No se encontró token. Redirigiendo al login...");
+          console.warn("No se encontró token, redirigiendo...");
           window.location.href = "/";
           return;
         }
 
-        const res = await fetch("http://localhost:3000/api/professor/grades", {
+        // 🔹 Cambié la URL para que coincida con tu backend
+        const res = await fetch(`http://localhost:3000/api/professor/grades`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -46,14 +52,16 @@ export default function TeacherGrades() {
         });
 
         if (!res.ok) {
-          console.error("❌ Error HTTP:", res.status, res.statusText);
-          setError(`No se pudieron cargar las notas (HTTP ${res.status})`);
+          setError(`Error al cargar notas (HTTP ${res.status})`);
           setLoading(false);
           return;
         }
 
-        const data = await res.json();
-        setGrades(data);
+        const data: Grade[] = await res.json();
+
+        // 🔹 Filtrar solo las notas del curso actual
+        const filtered = data.filter(g => g.tarea?.curso.id === courseId);
+        setGrades(filtered);
       } catch (err) {
         console.error("❌ Error cargando notas:", err);
         setError("Error inesperado al cargar notas.");
@@ -63,7 +71,7 @@ export default function TeacherGrades() {
     }
 
     loadGrades();
-  }, []);
+  }, [courseId]);
 
   if (loading) return <p style={{ padding: 40 }}>Cargando notas...</p>;
 
@@ -77,6 +85,7 @@ export default function TeacherGrades() {
         color: "#333",
       }}
     >
+      {/* HEADER */}
       <header
         style={{
           display: "flex",
@@ -85,9 +94,10 @@ export default function TeacherGrades() {
           marginBottom: 40,
         }}
       >
-        <h1 style={{ fontSize: 32, fontWeight: 700 }}>Notas de estudiantes</h1>
-        <a
-          href="/teacher"
+        <h1 style={{ fontSize: 32, fontWeight: 700 }}>Notas del curso #{courseId}</h1>
+
+        <Link
+          href={`/teacher/courses/${courseId}`}
           style={{
             padding: "8px 16px",
             backgroundColor: "#0070f3",
@@ -96,16 +106,19 @@ export default function TeacherGrades() {
             textDecoration: "none",
           }}
         >
-          ← Volver al dashboard
-        </a>
+          ← Volver al curso
+        </Link>
       </header>
 
+      {/* ERRORES */}
       {error && <p style={{ color: "red" }}>❌ {error}</p>}
 
-      {grades.length === 0 && !loading && !error && (
-        <p>No hay notas registradas.</p>
+      {/* SIN NOTAS */}
+      {!error && grades.length === 0 && (
+        <p>No hay notas registradas para este curso.</p>
       )}
 
+      {/* LISTA DE NOTAS */}
       {grades.length > 0 && (
         <main
           style={{
@@ -130,18 +143,17 @@ export default function TeacherGrades() {
               onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
             >
               <h2 style={{ fontSize: 18, fontWeight: 700 }}>
-                {g.estudiante?.nombre || "Estudiante sin nombre"}{" "}
-                {g.estudiante?.apellido || ""}
+                {g.estudiante?.nombre || "Sin nombre"} {g.estudiante?.apellido || ""}
               </h2>
-              <p style={{ fontSize: 14, opacity: 0.9 }}>
-                <strong>Curso:</strong> {g.tarea?.curso?.nombre || "Sin curso"}
-              </p>
+
               <p style={{ fontSize: 14, opacity: 0.9 }}>
                 <strong>Tarea:</strong> {g.tarea?.titulo || "Sin tarea"}
               </p>
+
               <p style={{ fontSize: 14, opacity: 0.9 }}>
                 <strong>Nota:</strong> {g.nota !== null ? g.nota : "No calificado"}
               </p>
+
               <p style={{ fontSize: 14, opacity: 0.9 }}>
                 <strong>Archivo:</strong>{" "}
                 {g.archivoURL ? (

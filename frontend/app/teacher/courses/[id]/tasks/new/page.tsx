@@ -1,55 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
-interface Course {
-  id: number;
-  nombre: string;
-}
-
 export default function CreateTaskPage() {
+  const { id } = useParams();           // ID del curso desde la URL
+  const courseId = Number(id);
+  const router = useRouter();
+
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [fechaEntrega, setFechaEntrega] = useState("");
-  const [cursoId, setCursoId] = useState<number | "">("");
-
-  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const router = useRouter();
-
-  // 🔹 Cargar los cursos del profesor
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    const fetchCourses = async () => {
-      try {
-        const res = await fetch("http://localhost:3000/api/professor/courses", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-        setCourses(data);
-      } catch (error) {
-        console.error("Error cargando cursos:", error);
-        setCourses([]);
-      }
-    };
-
-    fetchCourses();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!cursoId) {
-      alert("Debes seleccionar un curso");
-      return;
-    }
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -60,19 +26,21 @@ export default function CreateTaskPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:3000/api/professor/tasks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          titulo,
-          descripcion,
-          fechaEntrega,
-          courseId: cursoId,
-        }),
-      });
+      const res = await fetch(
+        `http://localhost:3000/api/professor/courses/${courseId}/tasks`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            titulo,
+            descripcion,
+            fechaEntrega,
+          }),
+        }
+      );
 
       const data = await res.json();
 
@@ -81,7 +49,7 @@ export default function CreateTaskPage() {
       }
 
       alert("Tarea creada correctamente");
-      router.push("/teacher/tasks");
+      router.push(`/teacher/courses/${courseId}/tasks`);
     } catch (err: any) {
       alert(err.message || "Error al crear tarea");
     } finally {
@@ -108,10 +76,12 @@ export default function CreateTaskPage() {
           marginBottom: 40,
         }}
       >
-        <h1 style={{ fontSize: 32, fontWeight: 700 }}>Crear Tarea</h1>
+        <h1 style={{ fontSize: 32, fontWeight: 700 }}>
+          Crear tarea para el curso #{courseId}
+        </h1>
 
         <Link
-          href="/teacher/tasks"
+          href={`/teacher/courses/${courseId}/tasks`}
           style={{
             padding: "8px 16px",
             backgroundColor: "#0070f3",
@@ -120,7 +90,7 @@ export default function CreateTaskPage() {
             textDecoration: "none",
           }}
         >
-          Volver a Mis Tareas
+          Volver a las tareas
         </Link>
       </header>
 
@@ -193,33 +163,6 @@ export default function CreateTaskPage() {
               fontSize: 14,
             }}
           />
-        </div>
-
-        {/* SELECCIONAR CURSO */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-            Seleccionar curso
-          </label>
-          <select
-            value={cursoId}
-            onChange={(e) => setCursoId(Number(e.target.value))}
-            required
-            style={{
-              width: "100%",
-              padding: 12,
-              borderRadius: 8,
-              border: "1px solid #ccc",
-              fontSize: 14,
-              background: "#fff",
-            }}
-          >
-            <option value="">-- Selecciona un curso --</option>
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nombre}
-              </option>
-            ))}
-          </select>
         </div>
 
         {/* BOTÓN */}

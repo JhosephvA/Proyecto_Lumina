@@ -40,7 +40,7 @@ export default function TeacherCourses() {
         }
 
         const data: Course[] = await res.json();
-        // Transformamos para que cada curso tenga la propiedad Profesor igual al usuario logueado
+
         const userData = JSON.parse(localStorage.getItem("user") || "{}");
         const list = data.map((course) => ({
           ...course,
@@ -84,33 +84,19 @@ export default function TeacherCourses() {
         }}
       >
         <h1 style={{ fontSize: 32, fontWeight: 700 }}>Mis Cursos</h1>
-        <div>
-          <Link
-            href="/teacher"
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#0070f3",
-              color: "#fff",
-              borderRadius: 6,
-              textDecoration: "none",
-              marginRight: 10,
-            }}
-          >
-            Volver al dashboard
-          </Link>
-          <Link
-            href="/teacher/courses/new"
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#00b894",
-              color: "#fff",
-              borderRadius: 6,
-              textDecoration: "none",
-            }}
-          >
-            Crear Curso
-          </Link>
-        </div>
+
+        <Link
+          href="/teacher"
+          style={{
+            padding: "8px 16px",
+            backgroundColor: "#0070f3",
+            color: "#fff",
+            borderRadius: 6,
+            textDecoration: "none",
+          }}
+        >
+          Volver al dashboard
+        </Link>
       </header>
 
       <main
@@ -143,7 +129,10 @@ export default function TeacherCourses() {
                 {course.descripcion || "Sin descripción"}
               </p>
               <p style={{ fontSize: 12, opacity: 0.7 }}>
-                Profesor: {course.Profesor ? `${course.Profesor.nombre} ${course.Profesor.apellido}` : "No asignado"}
+                Profesor:{" "}
+                {course.Profesor
+                  ? `${course.Profesor.nombre} ${course.Profesor.apellido}`
+                  : "No asignado"}
               </p>
             </div>
           ))

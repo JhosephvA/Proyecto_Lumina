@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 
 export default function MaterialsPage() {
+  const { id } = useParams();
+  const courseId = Number(id);
+
   const [materiales, setMateriales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,13 +21,16 @@ export default function MaterialsPage() {
         return;
       }
 
-      const res = await fetch("http://localhost:3000/api/professor/materials", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await fetch(
+        `http://localhost:3000/api/professor/courses/${courseId}/materials`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const contentType = res.headers.get("content-type") || "";
       if (!contentType.includes("application/json")) {
@@ -58,7 +65,7 @@ export default function MaterialsPage() {
         color: "#333",
       }}
     >
-      {/* HEADER IGUAL AL DE CURSOS */}
+      {/* HEADER */}
       <header
         style={{
           display: "flex",
@@ -67,7 +74,9 @@ export default function MaterialsPage() {
           marginBottom: 40,
         }}
       >
-        <h1 style={{ fontSize: 32, fontWeight: 700 }}>Mis Materiales</h1>
+        <h1 style={{ fontSize: 32, fontWeight: 700 }}>
+          Materiales del curso #{courseId}
+        </h1>
 
         <div>
           <Link
@@ -85,7 +94,7 @@ export default function MaterialsPage() {
           </Link>
 
           <Link
-            href="/teacher/materials/new"
+            href={`/teacher/courses/${courseId}/materials/new`}
             style={{
               padding: "8px 16px",
               backgroundColor: "#00b894",
@@ -99,11 +108,11 @@ export default function MaterialsPage() {
         </div>
       </header>
 
-      {/* CUERPO */}
+      {/* LISTADO */}
       {loading ? (
         <p style={{ padding: 40 }}>Cargando materiales...</p>
       ) : materiales.length === 0 ? (
-        <p>No hay materiales aún.</p>
+        <p>No hay materiales en este curso.</p>
       ) : (
         <main
           style={{
@@ -131,14 +140,12 @@ export default function MaterialsPage() {
                 (e.currentTarget.style.transform = "scale(1)")
               }
             >
-              <h2 style={{ fontSize: 20, fontWeight: 700 }}>{m.titulo}</h2>
+              <h2 style={{ fontSize: 20, fontWeight: 700 }}>
+                {m.titulo}
+              </h2>
 
               <p style={{ fontSize: 14, opacity: 0.9 }}>
                 {m.descripcion || "Sin descripción"}
-              </p>
-
-              <p style={{ fontSize: 12, opacity: 0.7, marginTop: 10 }}>
-                Curso: {m.curso?.nombre || "Sin curso asignado"}
               </p>
 
               {m.archivoUrl && (

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 interface Task {
   id: number;
@@ -11,63 +12,48 @@ interface Task {
   courseId: number;
 }
 
-interface Course {
-  id: number;
-  nombre: string;
-}
+export default function CourseTasksPage() {
+  const { id } = useParams(); // ← obtiene el ID del curso desde la URL
+  const courseId = Number(id);
 
-export default function TeacherTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      console.warn("⚠ No token, redirigiendo...");
       window.location.href = "/";
       return;
     }
 
-    const fetchData = async () => {
+    const fetchTasks = async () => {
       try {
-        // 🔹 Obtener tareas
-        const tasksRes = await fetch("http://localhost:3000/api/professor/tasks", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `http://localhost:3000/api/professor/courses/${courseId}/tasks`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
-        if (!tasksRes.ok) {
-          const err = await tasksRes.json();
-          throw new Error(err?.message || "Error al obtener tareas");
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || "Error al obtener tareas");
         }
 
-        const tasksData = await tasksRes.json();
-        setTasks(Array.isArray(tasksData) ? tasksData : []);
-
-        // 🔹 Obtener cursos
-        const coursesRes = await fetch("http://localhost:3000/api/professor/courses", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const coursesData = await coursesRes.json();
-        setCourses(Array.isArray(coursesData) ? coursesData : []);
+        const data = await res.json();
+        setTasks(Array.isArray(data) ? data : []);
       } catch (err: any) {
         console.error("❌ Error:", err.message);
         setTasks([]);
-        setCourses([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    fetchTasks();
+  }, [courseId]);
 
   if (loading) return <p style={{ padding: 40 }}>Cargando tareas...</p>;
-
-  // Helper para encontrar nombre del curso
-  const getCourseName = (id: number) =>
-    courses.find((c) => c.id === id)?.nombre || "Curso desconocido";
 
   return (
     <div
@@ -88,7 +74,9 @@ export default function TeacherTasks() {
           marginBottom: 40,
         }}
       >
-        <h1 style={{ fontSize: 32, fontWeight: 700 }}>Tareas asignadas</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 700 }}>
+          Tareas del curso #{courseId}
+        </h1>
 
         <div>
           <Link
@@ -106,7 +94,7 @@ export default function TeacherTasks() {
           </Link>
 
           <Link
-            href="/teacher/tasks/new"
+            href={`/teacher/courses/${courseId}/tasks/new`}
             style={{
               padding: "8px 16px",
               backgroundColor: "#00b894",
@@ -115,21 +103,21 @@ export default function TeacherTasks() {
               textDecoration: "none",
             }}
           >
-            Crear Tarea
+            Crear tarea
           </Link>
         </div>
       </header>
 
-      {/* MAIN CONTENT */}
+      {/* TASK CARDS */}
       <main
         style={{
           display: "grid",
           gap: 24,
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
         }}
       >
         {tasks.length === 0 ? (
-          <p>No tienes tareas creadas aún.</p>
+          <p>No hay tareas registradas en este curso.</p>
         ) : (
           tasks.map((task) => (
             <div
@@ -157,13 +145,8 @@ export default function TeacherTasks() {
               </p>
 
               <p style={{ fontSize: 12, opacity: 0.8 }}>
-                Fecha de entrega:{" "}
+                Fecha:{" "}
                 {new Date(task.fechaEntrega).toLocaleDateString("es-PE")}
-              </p>
-
-              {/* 🔹 Curso asignado */}
-              <p style={{ fontSize: 12, marginTop: 10, opacity: 0.9 }}>
-                <strong>Curso:</strong> {getCourseName(task.courseId)}
               </p>
             </div>
           ))
